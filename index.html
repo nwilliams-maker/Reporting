@@ -318,6 +318,20 @@
         });
     });
     function updateCalculations() { if (currentData) processData(currentData); else { const f = parseFloat($('#inputFleet').val())||0, p = parseFloat($('#inputPayroll').val())||0; $('#mainCteDisplay').text(`$${(f+p).toLocaleString()}`); } }
+    // Name-alias map. Any occurrence of a key (case-insensitive) in the Owner or
+    // Assigned-to columns is reported as the value name in every tab and PDF.
+    const NAME_ALIASES = {
+        'bernice makaya':    'Nick Williams',
+        'stacey ferreira':   'Kiara Gallardo',
+        'elna burger':       'Diana Cazares',
+        'reabetswe segopa':  'Arriela Engelhardt',
+        'lee mark adams':    'Marcos Espinoza'
+    };
+    function normalizeName(name) {
+        if (!name) return name;
+        const key = String(name).trim().toLowerCase();
+        return NAME_ALIASES[key] || name;
+    }
     function getDispatcherName(str) {
         if (!str || str.trim() === "" || str.trim().toLowerCase() === "unassigned") return 'David Borochov';
         let clean = str.replace(/ Total/g, '').trim();
@@ -325,7 +339,7 @@
         if (clean.includes("Karen") || clean.includes("Yusep")) return "Karen Heiden";
         let people = clean.split(',').map(p => p.trim());
         if (people.length > 1) { const filtered = people.filter(p => !p.includes("Matt Shanks")); if (filtered.length > 0) people = filtered; }
-        return people[people.length - 1];
+        return normalizeName(people[people.length - 1]);
     }
     function processData(data) {
         if (!data) return;
@@ -353,7 +367,7 @@
             const isEsc = (row['Escalation']||"").trim().toUpperCase() === "YES" || taskType.includes('escalation') || ownerRaw.includes("Matt Shanks");
 
             // Track unique contractor names per IC/FA group (one count per person)
-            const assignedRaw = (row['Assigned to']|| row['Technician'] || "").trim();
+            const assignedRaw = normalizeName((row['Assigned to']|| row['Technician'] || "").trim());
             if (assignedRaw && assignedRaw.toLowerCase() !== 'unassigned') {
                 if (isFA) faTechs.add(assignedRaw);
                 else      icTechs.add(assignedRaw);
