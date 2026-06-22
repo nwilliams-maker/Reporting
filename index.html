@@ -939,9 +939,13 @@
 
         doc.save(pdfFilename('Monthly_Report'));
     }
-    // Monday.com CSV exports prepend two preamble rows (the board title + a marketing line)
-    // before the real header. Strip everything above the first row that looks like real
-    // column headers, then hand off to PapaParse.
+    // Monday.com CSV exports come with junk Excel-like rows:
+    //  - A preamble at the top (board title + marketing line) before the real header.
+    //  - Per-group subtotal rows ("2026-04-01 to 2026-04-30" in the Date col, total in Rate col).
+    //  - Group-header rows (only column A populated, e.g. "Need to Archive").
+    //  - Repeated column-header rows when Monday groups the export.
+    //  - Fully blank separator rows.
+    // We strip the preamble before parsing, then filter the parsed rows.
     function parseMondayCsv(file, onComplete) {
         const reader = new FileReader();
         reader.onload = ev => {
@@ -949,12 +953,10 @@
             if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // strip BOM
             const lines = text.split(/\r?\n/);
             let headerIdx = 0;
-            // Look in the first 10 lines for a row that contains tell-tale column names.
+            // Find the first row that contains tell-tale column names.
             for (let i = 0; i < Math.min(lines.length, 10); i++) {
                 const lower = lines[i].toLowerCase();
-                if (lower.includes('date visited') || lower.includes('task_type') ||
-                    (lower.includes(',vid,') || lower.startsWith('vid,') || lower.includes(',vid'))
-                    && lower.includes('name')) {
+                if (lower.includes('date visited') || lower.includes('task_type')) {
                     headerIdx = i; break;
                 }
             }
@@ -962,7 +964,25 @@
             Papa.parse(cleaned, {
                 header: true,
                 skipEmptyLines: true,
-                complete: onComplete
+                complete: r => {
+                    const before = r.data.length;
+                    r.data = r.data.filter(row => {
+                        if (!row) return false;
+                        // Drop repeated-header rows (cell value equals the column name)
+                        if ((row['task_type'] || '').trim().toLowerCase() === 'task_type') return false;
+                        if ((row['Date Visited'] || '').trim().toLowerCase() === 'date visited') return false;
+                        if ((row['VID'] || '').trim().toLowerCase() === 'vid') return false;
+                        // Drop rows where the majority of cells are blank
+                        // (catches group-header rows, subtotal rows, separator rows).
+                        const vals = Object.values(row);
+                        if (vals.length === 0) return false;
+                        const filled = vals.filter(v => v != null && String(v).trim() !== '').length;
+                        if (filled <= vals.length / 2) return false;
+                        return true;
+                    });
+                    if (window.console) console.log(`[CSV cleanup] dropped ${before - r.data.length} junk row(s), kept ${r.data.length}`);
+                    onComplete(r);
+                }
             });
         };
         reader.readAsText(file);
