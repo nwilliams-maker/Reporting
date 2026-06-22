@@ -939,16 +939,53 @@
 
         doc.save(pdfFilename('Monthly_Report'));
     }
-    document.getElementById('csvFile').addEventListener('change', e => { Papa.parse(e.target.files[0], { header: true, complete: r => { currentData = r.data; currentLabel = e.target.files[0].name.replace('.csv',''); processData(r.data); $('#saveBtn, .tab-pdf-btn, #datePill').show(); $('#periodValueText').text(currentLabel); }}); });
+    // Monday.com CSV exports prepend two preamble rows (the board title + a marketing line)
+    // before the real header. Strip everything above the first row that looks like real
+    // column headers, then hand off to PapaParse.
+    function parseMondayCsv(file, onComplete) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            let text = ev.target.result || "";
+            if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // strip BOM
+            const lines = text.split(/\r?\n/);
+            let headerIdx = 0;
+            // Look in the first 10 lines for a row that contains tell-tale column names.
+            for (let i = 0; i < Math.min(lines.length, 10); i++) {
+                const lower = lines[i].toLowerCase();
+                if (lower.includes('date visited') || lower.includes('task_type') ||
+                    (lower.includes(',vid,') || lower.startsWith('vid,') || lower.includes(',vid'))
+                    && lower.includes('name')) {
+                    headerIdx = i; break;
+                }
+            }
+            const cleaned = lines.slice(headerIdx).join('\n');
+            Papa.parse(cleaned, {
+                header: true,
+                skipEmptyLines: true,
+                complete: onComplete
+            });
+        };
+        reader.readAsText(file);
+    }
+
+    document.getElementById('csvFile').addEventListener('change', e => {
+        parseMondayCsv(e.target.files[0], r => {
+            currentData = r.data;
+            currentLabel = e.target.files[0].name.replace('.csv','');
+            processData(r.data);
+            $('#saveBtn, .tab-pdf-btn, #datePill').show();
+            $('#periodValueText').text(currentLabel);
+        });
+    });
     document.getElementById('batchCsvFile').addEventListener('change', e => {
-        Papa.parse(e.target.files[0], { header: true, complete: r => {
+        parseMondayCsv(e.target.files[0], r => {
             let arc = getArchiveData(); r.data.forEach(row => {
                 let d = parseDateSafe(row['Date Visited']||row['Visit Date']); if(!d) return;
                 let s = new Date(d); s.setDate(s.getDate()-s.getDay()+(s.getDay()===0?-6:1)); let ed = new Date(s); ed.setDate(s.getDate()+6);
                 let l = `${s.toLocaleDateString(undefined, {month:'short', day:'numeric'})} - ${ed.toLocaleDateString(undefined, {month:'short', day:'numeric'})}, ${ed.getFullYear()}`;
                 if(!arc[l]) arc[l] = []; arc[l].push(row);
             }); saveArchiveData(arc); loadFromStorage(); alert("Batch complete.");
-        }});
+        });
     });
     function exportArchive() { const arc = getArchiveData(); if (Object.keys(arc).length === 0) return; const blob = new Blob([JSON.stringify(arc)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `OpsCenter_Archive_${new Date().toISOString().split('T')[0]}.json`; a.click(); }
 
