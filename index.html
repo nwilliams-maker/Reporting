@@ -356,7 +356,10 @@
     };
     const STATE_NAME_TO_CODE = {
         'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA',
-        'colorado':'CO','connecticut':'CT','delaware':'DE','district of columbia':'DC',
+        'colorado':'CO','connecticut':'CT','delaware':'DE',
+        // DC variations — "Washington DC" must NOT map to Washington state
+        'district of columbia':'DC','dist of columbia':'DC','washington dc':'DC',
+        'washington d c':'DC','washington, dc':'DC','washington, d c':'DC','d c':'DC',
         'florida':'FL','georgia':'GA','hawaii':'HI','idaho':'ID','illinois':'IL',
         'indiana':'IN','iowa':'IA','kansas':'KS','kentucky':'KY','louisiana':'LA',
         'maine':'ME','maryland':'MD','massachusetts':'MA','michigan':'MI','minnesota':'MN',
@@ -379,17 +382,37 @@
     const POD_COLOR = Object.fromEntries(PODS.map(p => [p.name, p.color]));
 
     function podFromState(state) {
-        if (!state) return null;
-        const s = String(state).trim();
-        const code = s.length === 2 ? s.toUpperCase() : (STATE_NAME_TO_CODE[s.toLowerCase()] || null);
-        return code ? (STATE_TO_POD[code] || null) : null;
+        if (state == null) return null;
+        // Normalize: strip surrounding whitespace, drop periods, collapse commas/whitespace
+        const raw = String(state).trim();
+        if (!raw) return null;
+        const cleaned = raw.replace(/\./g, '').replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!cleaned) return null;
+
+        // DC takes priority — if the string contains "DC" anywhere (e.g. "Washington DC",
+        // "D.C.", "Washington, D.C."), force the DC code before anything else can claim it.
+        const upper = cleaned.toUpperCase();
+        if (/\bDC\b/.test(upper) || upper === 'D C') return STATE_TO_POD['DC'] || null;
+
+        // Try as a 2-letter postal code first.
+        if (cleaned.length === 2) {
+            const code = upper;
+            if (STATE_TO_POD[code]) return STATE_TO_POD[code];
+        }
+
+        // Try as a full state name.
+        const lower = cleaned.toLowerCase();
+        const code = STATE_NAME_TO_CODE[lower];
+        if (code && STATE_TO_POD[code]) return STATE_TO_POD[code];
+
+        return null;
     }
     // Resolve the bucket for a row: Karen-owned rows go to Digital; everything else
-    // uses state-based pod. Falls back to "Unassigned" if state is missing/unknown.
+    // uses state-based pod. Returns null if neither rule matches — caller must skip the row
+    // from the pod breakdown (it'll still count in IC Pay totals).
     function getPodBucket(dispatcher, state) {
         if (dispatcher === 'Karen Heiden') return 'Digital';
-        const pod = podFromState(state);
-        return pod || 'Unassigned';
+        return podFromState(state);
     }
 
     function getDispatcherName(str) {
@@ -440,10 +463,13 @@
                 icPay += rate;
                 const group = isEsc ? 'escalations' : 'regular';
                 // Pod replaces the dispatcher as the grouping key. Karen-owned rows -> "Digital",
-                // everything else uses the state column to pick a pod.
+                // everything else uses the state column to pick a pod. If neither rule matches,
+                // skip the row from the pod table (no "Unassigned" bucket).
                 const podBucket = getPodBucket(dispatcher, row['state'] || row['State']);
-                if (!ownerMap[group][podBucket]) ownerMap[group][podBucket] = { pay: 0, vids: new Set() };
-                ownerMap[group][podBucket].pay += rate; ownerMap[group][podBucket].vids.add(vid);
+                if (podBucket) {
+                    if (!ownerMap[group][podBucket]) ownerMap[group][podBucket] = { pay: 0, vids: new Set() };
+                    ownerMap[group][podBucket].pay += rate; ownerMap[group][podBucket].vids.add(vid);
+                }
                 const assigned = assignedRaw;
                 const wo = (row['Work Order Number']|| row['WO #'] || '--').toString().trim();
                 if (assigned && assigned.toLowerCase() !== 'unassigned') {
