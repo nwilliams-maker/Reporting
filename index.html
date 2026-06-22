@@ -333,6 +333,65 @@
         const key = String(name).trim().toLowerCase();
         return NAME_ALIASES[key] || name;
     }
+    // Pod assignment by US state (Karen owner short-circuits to "Digital").
+    const STATE_TO_POD = {
+        // Orange
+        AK:'Orange Pod', AZ:'Orange Pod', CA:'Orange Pod', HI:'Orange Pod',
+        ID:'Orange Pod', NV:'Orange Pod', OR:'Orange Pod', WA:'Orange Pod',
+        // Green
+        CO:'Green Pod', DC:'Green Pod', GA:'Green Pod', IN:'Green Pod',
+        KY:'Green Pod', MD:'Green Pod', NJ:'Green Pod', OH:'Green Pod', UT:'Green Pod',
+        // Red
+        CT:'Red Pod', DE:'Red Pod', MA:'Red Pod', ME:'Red Pod',
+        NH:'Red Pod', NY:'Red Pod', PA:'Red Pod', RI:'Red Pod',
+        VA:'Red Pod', VT:'Red Pod', WV:'Red Pod',
+        // Blue
+        AL:'Blue Pod', AR:'Blue Pod', FL:'Blue Pod', IA:'Blue Pod',
+        IL:'Blue Pod', LA:'Blue Pod', MI:'Blue Pod', MN:'Blue Pod',
+        MO:'Blue Pod', MS:'Blue Pod', NC:'Blue Pod', SC:'Blue Pod', WI:'Blue Pod',
+        // Purple
+        KS:'Purple Pod', MT:'Purple Pod', ND:'Purple Pod', NE:'Purple Pod',
+        NM:'Purple Pod', OK:'Purple Pod', SD:'Purple Pod', TN:'Purple Pod',
+        TX:'Purple Pod', WY:'Purple Pod'
+    };
+    const STATE_NAME_TO_CODE = {
+        'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA',
+        'colorado':'CO','connecticut':'CT','delaware':'DE','district of columbia':'DC',
+        'florida':'FL','georgia':'GA','hawaii':'HI','idaho':'ID','illinois':'IL',
+        'indiana':'IN','iowa':'IA','kansas':'KS','kentucky':'KY','louisiana':'LA',
+        'maine':'ME','maryland':'MD','massachusetts':'MA','michigan':'MI','minnesota':'MN',
+        'mississippi':'MS','missouri':'MO','montana':'MT','nebraska':'NE','nevada':'NV',
+        'new hampshire':'NH','new jersey':'NJ','new mexico':'NM','new york':'NY',
+        'north carolina':'NC','north dakota':'ND','ohio':'OH','oklahoma':'OK','oregon':'OR',
+        'pennsylvania':'PA','rhode island':'RI','south carolina':'SC','south dakota':'SD',
+        'tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT','virginia':'VA',
+        'washington':'WA','west virginia':'WV','wisconsin':'WI','wyoming':'WY'
+    };
+    // Ordered list (used for stable rendering + color styling)
+    const PODS = [
+        { name: 'Red Pod',    color: '#e11d48' },
+        { name: 'Green Pod',  color: '#10b981' },
+        { name: 'Blue Pod',   color: '#2563eb' },
+        { name: 'Orange Pod', color: '#f59e0b' },
+        { name: 'Purple Pod', color: '#8b5cf6' },
+        { name: 'Digital',    color: '#06b6d4' }
+    ];
+    const POD_COLOR = Object.fromEntries(PODS.map(p => [p.name, p.color]));
+
+    function podFromState(state) {
+        if (!state) return null;
+        const s = String(state).trim();
+        const code = s.length === 2 ? s.toUpperCase() : (STATE_NAME_TO_CODE[s.toLowerCase()] || null);
+        return code ? (STATE_TO_POD[code] || null) : null;
+    }
+    // Resolve the bucket for a row: Karen-owned rows go to Digital; everything else
+    // uses state-based pod. Falls back to "Unassigned" if state is missing/unknown.
+    function getPodBucket(dispatcher, state) {
+        if (dispatcher === 'Karen Heiden') return 'Digital';
+        const pod = podFromState(state);
+        return pod || 'Unassigned';
+    }
+
     function getDispatcherName(str) {
         if (!str || str.trim() === "" || str.trim().toLowerCase() === "unassigned") return 'David Borochov';
         let clean = str.replace(/ Total/g, '').trim();
@@ -380,8 +439,11 @@
                 const rate = Math.round(parseFloat((row['SUM of Rate']||row['Rate']||"0").toString().replace(/[$,]/g, ''))) || 0;
                 icPay += rate;
                 const group = isEsc ? 'escalations' : 'regular';
-                if (!ownerMap[group][dispatcher]) ownerMap[group][dispatcher] = { pay: 0, vids: new Set() };
-                ownerMap[group][dispatcher].pay += rate; ownerMap[group][dispatcher].vids.add(vid);
+                // Pod replaces the dispatcher as the grouping key. Karen-owned rows -> "Digital",
+                // everything else uses the state column to pick a pod.
+                const podBucket = getPodBucket(dispatcher, row['state'] || row['State']);
+                if (!ownerMap[group][podBucket]) ownerMap[group][podBucket] = { pay: 0, vids: new Set() };
+                ownerMap[group][podBucket].pay += rate; ownerMap[group][podBucket].vids.add(vid);
                 const assigned = assignedRaw;
                 const wo = (row['Work Order Number']|| row['WO #'] || '--').toString().trim();
                 if (assigned && assigned.toLowerCase() !== 'unassigned') {
@@ -443,17 +505,21 @@
         $("#faCostPerVisit").text(`$${(faLocs.size>0 ? Math.round(cte/faLocs.size) : 0)}`);
 
         let oHtml = "", rS = 0, rP = 0, eS = 0, eP = 0, pdfR = [], pdfE = [];
+        const podDot = name => {
+            const c = POD_COLOR[name];
+            return c ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};margin-right:8px;vertical-align:middle;"></span>` : '';
+        };
         oHtml += `<tr><td colspan="4" class="bg-light fw-bold text-uppercase small py-2 px-3">REGULAR ROUTES</td></tr>`;
         Object.entries(ownerMap.regular).sort((a,b)=>b[1].pay-a[1].pay).forEach(([n, d]) => {
             const pStr = '$'+d.pay.toLocaleString(), aStr = '$'+Math.round(d.pay/d.vids.size).toLocaleString();
-            oHtml += `<tr><td class="ps-3">${n}</td><td class="text-center">${d.vids.size}</td><td class="text-primary fw-bold">${pStr}</td><td>${aStr}</td></tr>`;
+            oHtml += `<tr><td class="ps-3">${podDot(n)}${n}</td><td class="text-center">${d.vids.size}</td><td class="text-primary fw-bold">${pStr}</td><td>${aStr}</td></tr>`;
             pdfR.push([n, d.vids.size.toString(), pStr, aStr]); rS += d.vids.size; rP += d.pay;
         });
         oHtml += `<tr class="fw-bold table-light text-primary"><td>Regular Subtotal:</td><td class="text-center">${rS}</td><td>$${rP.toLocaleString()}</td><td>$${Math.round(rP/(rS||1)).toLocaleString()}</td></tr>`;
         oHtml += `<tr><td colspan="4" class="bg-light fw-bold text-uppercase small py-2 px-3">ESCALATIONS & ROLLOUTS</td></tr>`;
         Object.entries(ownerMap.escalations).sort((a,b)=>b[1].pay-a[1].pay).forEach(([n, d]) => {
             const pStr = '$'+d.pay.toLocaleString(), aStr = '$'+Math.round(d.pay/d.vids.size).toLocaleString();
-            oHtml += `<tr><td class="ps-3">${n}</td><td class="text-center">${d.vids.size}</td><td class="text-primary fw-bold">${pStr}</td><td>${aStr}</td></tr>`;
+            oHtml += `<tr><td class="ps-3">${podDot(n)}${n}</td><td class="text-center">${d.vids.size}</td><td class="text-primary fw-bold">${pStr}</td><td>${aStr}</td></tr>`;
             pdfE.push([n, d.vids.size.toString(), pStr, aStr]); eS += d.vids.size; eP += d.pay;
         });
         oHtml += `<tr class="fw-bold table-secondary"><td>GRAND TOTAL:</td><td class="text-center">${rS+eS}</td><td>$${(rP+eP).toLocaleString()}</td><td>$${Math.round((rP+eP)/((rS+eS)||1)).toLocaleString()}</td></tr>`;
@@ -814,7 +880,7 @@
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 30,
             margin: {right: 230},
-            head: [['Dispatcher', 'Sites', 'Total Pay', 'Avg / Site']],
+            head: [['Pod', 'Sites', 'Total Pay', 'Avg / Site']],
             body: dispatcherBody,
             theme: 'grid',
             styles: {fontSize: 8},
