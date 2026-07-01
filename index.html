@@ -34,9 +34,22 @@
         .avg-pill { position: absolute; top: 1.25rem; right: 1.5rem; background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.7rem; }
         .pill-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
         .card-input { border: none; border-bottom: 1px dashed var(--card-border); font-weight: 700; width: 60px; text-align: right; background: transparent; outline: none; }
-        .contractor-pill { background: white; border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
+        #inputIcPool::-webkit-outer-spin-button, #inputIcPool::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #inputIcPool { -moz-appearance: textfield; appearance: textfield; }
+        .contractor-pill { background: white; border: 1px solid var(--card-border); border-left: 5px solid var(--card-border); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
         .contractor-header { padding: 1.25rem 2rem; display: flex; align-items: center; cursor: pointer; }
-        .contractor-name { font-weight: 700; font-size: 1.05rem; color: var(--accent); flex: 1; }
+        .contractor-name { font-weight: 700; font-size: 1.05rem; color: var(--accent); }
+        .contractor-pod-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+        .contractor-pod-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+        .pod-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+        .pod-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 0.75rem; font-weight: 800; padding: 7px 14px; border-radius: 999px; border: 1.5px solid transparent; cursor: pointer; user-select: none; transition: filter 0.15s; }
+        .pod-pill:hover { filter: brightness(0.96); }
+        .pod-pill .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+        .pod-pill .cnt { font-weight: 700; opacity: 0.75; }
+        .pod-section-header { display: flex; align-items: center; gap: 10px; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--card-border); }
+        .pod-section-header .bar { width: 4px; height: 18px; border-radius: 4px; flex: none; }
+        .pod-section-title { font-weight: 800; font-size: 0.9rem; }
+        .pod-section-meta { margin-left: auto; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
         .pill-group-right { display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 5px 15px; gap: 20px; }
         .pill-stat { text-align: center; }
         .pill-label-drill { font-size: 0.55rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: -2px; }
@@ -83,6 +96,23 @@
         .tt-summary-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
         .tt-summary-table td.cost { font-weight: 800; }
         .tt-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+        /* Pod summary table (Dashboard) */
+        .pod-table-wrap { border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; background: white; }
+        .pod-table { width: 100%; border-collapse: collapse; }
+        .pod-table .pod-head td { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid var(--card-border); }
+        .pod-table .pod-row td { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .pod-table .pod-row:hover td { background: #f8fafc; }
+        .pod-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 10px; vertical-align: middle; }
+        .pod-name { font-weight: 700; color: var(--text-main); font-size: 0.9rem; }
+        .pod-metric { font-weight: 800; color: var(--text-main); font-size: 0.95rem; line-height: 1.1; }
+        .pod-metric .sub { display: block; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.02em; margin-top: 4px; white-space: nowrap; }
+        .pod-metric.empty { color: #cbd5e1; }
+        .pod-total { font-weight: 800; color: var(--text-main); font-size: 1.05rem; }
+        .pod-cost { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+        .pod-table .pod-grand td { padding: 15px 18px; background: var(--sidebar); color: white; }
+        .pod-grand .pod-metric, .pod-grand .pod-total { color: white; }
+        .pod-grand .pod-metric .sub { color: #94a3b8; }
+        .pod-grand .pod-cost { color: #60a5fa; }
     </style>
 </head>
 <body>
@@ -122,7 +152,7 @@
     </header>
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item"><a class="nav-link active" onclick="switchTab('command')" id="tab-dashboard">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" onclick="switchTab('details')" id="tab-details">Dispatcher Detail</a></li>
+        <li class="nav-item"><a class="nav-link" onclick="switchTab('details')" id="tab-details">Contractor Detail</a></li>
         <li class="nav-item"><a class="nav-link" onclick="switchTab('monthly')" id="tab-monthly">Monthly Report</a></li>
     </ul>
     <div id="view-command">
@@ -150,25 +180,26 @@
             <div class="col-xl-4">
                 <div class="row g-3 h-100">
                     <div class="col-12"><div class="kpi-card shadow-sm"><span class="pill-label">Unique Sites</span><div class="avg-pill" style="background:#f1f5f9; color:#64748b;" id="visitSplit">IC: 0 | FA: 0</div><div class="fw-800 fs-3 mt-1" id="uniqueVisits">0</div></div></div>
-                    <div class="col-6"><div class="kpi-card shadow-sm" style="background:#eff6ff;"><span class="pill-label" style="color:#2563eb;">IC Contractors</span><div class="fw-800 fs-3 mt-1" style="color:#2563eb;" id="uniqueIC">0</div></div></div>
+                    <div class="col-6"><div class="kpi-card shadow-sm" style="background:#eff6ff;"><span class="pill-label" style="color:#2563eb;">ICs Used This Week</span><div class="fw-800 fs-3 mt-1" style="color:#2563eb;" id="uniqueIC">0</div><span class="small text-muted">of <input type="number" id="inputIcPool" class="card-input" value="500" style="width:54px;text-align:center;color:#2563eb;" oninput="updateCalculations()"> · <span class="fw-800" style="color:#2563eb;" id="icUtilization">0%</span></span></div></div>
                     <div class="col-6"><div class="kpi-card shadow-sm" style="background:#ecfdf5;"><span class="pill-label" style="color:#10b981;">FA Contractors</span><div class="fw-800 fs-3 mt-1" style="color:#10b981;" id="uniqueFA">0</div></div></div>
                     <div class="col-6"><div class="kpi-card shadow-sm" style="background:#fffbeb;"><span class="pill-label text-warning">Escalations</span><div class="fw-800 fs-3 mt-1 text-warning" id="escCount">0</div></div></div>
-                    <div class="col-6"><div class="kpi-card shadow-sm" style="background:#fff1f2;"><span class="pill-label text-danger">Exceptions</span><div class="fw-800 fs-3 text-danger mt-1" id="exceptionTotal">0</div></div></div>
+                    <div class="col-6"><div class="kpi-card shadow-sm" style="background:#fff1f2;"><span class="pill-label text-danger">Kiosk Exceptions</span><div class="fw-800 fs-3 text-danger mt-1" id="exceptionTotal">0</div><span class="small text-muted">Across <span class="fw-800 text-dark" id="exceptionVenues">0</span> venues</span></div></div>
                 </div>
             </div>
         </div>
         <div class="row g-4">
-            <div class="col-lg-8 border-end"><table class="table align-middle small bg-white border rounded"><tbody id="ownerBody"></tbody></table></div>
-            <div class="col-lg-4"><h6 class="fw-800 mb-3 text-muted small text-uppercase">Exception Breakdown</h6><div id="ex-summary"></div></div>
+            <div class="col-lg-8 border-end"><div class="pod-table-wrap shadow-sm"><table class="pod-table"><tbody id="ownerBody"></tbody></table></div></div>
+            <div class="col-lg-4"><h6 class="fw-800 mb-3 text-muted small text-uppercase">Exceptions Breakdown per Kiosk</h6><div id="ex-summary"></div></div>
         </div>
     </div>
     <div id="view-details" style="display:none;">
+        <div id="podFilterPills" class="pod-pills"></div>
         <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-outline-primary btn-sm fw-bold tab-pdf-btn" onclick="downloadDispatcherPDF()" style="display:none;">📄 Download Dispatcher Detail PDF</button>
+            <button class="btn btn-outline-primary btn-sm fw-bold tab-pdf-btn" onclick="downloadDispatcherPDF()" style="display:none;">📄 Download Contractor Detail PDF</button>
         </div>
         <div class="search-container shadow-sm">
             <input type="text" id="modernSearch" class="form-control border-0" placeholder="Search tech name or WO#..." onkeyup="applyFiltersAndSort()">
-            <select id="modernSort" class="form-select border-0 w-25 fw-bold" onchange="applyFiltersAndSort()"><option value="pay-desc">Highest Pay</option><option value="sites-desc">Most Sites</option><option value="name-asc">Name A-Z</option></select>
+            <select id="modernSort" class="form-select border-0 w-25 fw-bold" onchange="applyFiltersAndSort()"><option value="pay-desc">Highest Pay</option><option value="sites-desc">Most Sites</option><option value="avg-desc">Highest Avg / Stop</option><option value="avg-asc">Lowest Avg / Stop</option><option value="name-asc">Name A-Z</option></select>
         </div>
         <div id="contractorList"></div>
     </div>
@@ -289,10 +320,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     let currentData = null, currentLabel = "";
+    let contractorData = [], currentPodFilter = 'all';
     // Task type categories displayed on Monthly Report tab
     const TASK_TYPES = [
         { key: 'new_ad',     label: 'New Ad',       cls: 'tt-newad',      bg: 'tt-newad-bg' },
-        { key: 'default',    label: 'Default',      cls: 'tt-default',    bg: 'tt-default-bg' },
         { key: 'kiosk',      label: 'Kiosk Install',cls: 'tt-kiosk',      bg: 'tt-kiosk-bg' },
         { key: 'escalation', label: 'Escalation',   cls: 'tt-escalation', bg: 'tt-escalation-bg' },
         { key: 'continuity', label: 'Continuity',   cls: 'tt-continuity', bg: 'tt-continuity-bg' }
@@ -306,8 +337,8 @@
         if (t.includes('new ad') || t.includes('new_ad') || t.includes('newad')) return 'new_ad';
         if (t.includes('kiosk') || t.includes('install') || t.includes('rollout')) return 'kiosk';
         if (t.includes('continuity') || t.includes('cont.') || t.includes('digital service')) return 'continuity';
-        // Default catches blanks, "default", "regular", and anything unclassified
-        return 'default';
+        // New Ad absorbs Default — blanks, "default", "regular", and anything unclassified roll up here
+        return 'new_ad';
     }
     function getArchiveData() { try { let s = localStorage.getItem('opsArchive'); return s ? JSON.parse(LZString.decompressFromUTF16(s)) : {}; } catch(e) { return {}; } }
     function saveArchiveData(obj) { localStorage.setItem('opsArchive', LZString.compressToUTF16(JSON.stringify(obj))); }
@@ -381,6 +412,19 @@
     ];
     const POD_COLOR = Object.fromEntries(PODS.map(p => [p.name, p.color]));
 
+    // Pick the pod where a contractor did the most work (by pay, tie-broken by job count).
+    function dominantPod(pods) {
+        let best = null, bp = -1, bn = -1;
+        Object.entries(pods || {}).forEach(([p, v]) => {
+            if (v.pay > bp || (v.pay === bp && v.n > bn)) { best = p; bp = v.pay; bn = v.n; }
+        });
+        return best;
+    }
+    function hexToRgb(hex) {
+        const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+        return m ? [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)] : [51, 65, 85];
+    }
+
     function podFromState(state) {
         if (state == null) return null;
         // Normalize: strip surrounding whitespace, drop periods, collapse commas/whitespace
@@ -430,6 +474,9 @@
         let icPay = 0, escTotal = 0;
         const ownerMap = { regular: {}, escalations: {} }, globalLocs = new Set(), icLocs = new Set(), faLocs = new Set(), contractorMap = {}, icTechs = new Set(), faTechs = new Set();
         const exMap = { "Venue Closed": {}, "Kiosk Missing": {}, "Refusal": {}, "Damaged": {} };
+        // Unique VIDs (physical venues/sites) per exception reason. A venue can host several kiosks,
+        // so exMap counts kiosk rows per venue name, while exVids counts distinct venues by VID.
+        const exVids = { "Venue Closed": new Set(), "Kiosk Missing": new Set(), "Refusal": new Set(), "Damaged": new Set() };
         // Task type accumulators (only counts IC rows since FA rows have no per-row rate)
         const taskTypeMap = {};
         TASK_TYPES.forEach(tt => { taskTypeMap[tt.key] = { pay: 0, sites: new Set(), jobs: 0, venues: {} }; });
@@ -449,18 +496,22 @@
             const taskType = (row['task_type']||"").toLowerCase();
             const isEsc = (row['Escalation']||"").trim().toUpperCase() === "YES" || taskType.includes('escalation') || ownerRaw.includes("Matt Shanks");
 
-            // Track unique contractor names per IC/FA group (one count per person)
+            // Assigned contractor for this row (normalized). FA techs are counted on sight.
+            // IC techs are only counted once they have real paid work this period (rate > 0),
+            // so "IC Contractors" reflects ICs actually used this week — not every IC on the sheet
+            // (exception rows, $0 rows, and no-show rows no longer inflate the count).
             const assignedRaw = normalizeName((row['Assigned to']|| row['Technician'] || "").trim());
-            if (assignedRaw && assignedRaw.toLowerCase() !== 'unassigned') {
-                if (isFA) faTechs.add(assignedRaw);
-                else      icTechs.add(assignedRaw);
-            }
+            const hasAssigned = assignedRaw && assignedRaw.toLowerCase() !== 'unassigned';
 
-            if (isFA) { faLocs.add(vid); }
+            if (isFA) {
+                faLocs.add(vid);
+                if (hasAssigned) faTechs.add(assignedRaw);
+            }
             else {
                 icLocs.add(vid);
                 const rate = Math.round(parseFloat((row['SUM of Rate']||row['Rate']||"0").toString().replace(/[$,]/g, ''))) || 0;
                 icPay += rate;
+                if (hasAssigned && rate > 0) icTechs.add(assignedRaw);
                 const group = isEsc ? 'escalations' : 'regular';
                 // Pod replaces the dispatcher as the grouping key. Karen-owned rows -> "Digital",
                 // everything else uses the state column to pick a pod. If neither rule matches,
@@ -473,8 +524,13 @@
                 const assigned = assignedRaw;
                 const wo = (row['Work Order Number']|| row['WO #'] || '--').toString().trim();
                 if (assigned && assigned.toLowerCase() !== 'unassigned') {
-                    if (!contractorMap[assigned]) contractorMap[assigned] = { dispatcher, pay: 0, vids: new Set(), jobs: {} };
+                    if (!contractorMap[assigned]) contractorMap[assigned] = { dispatcher, pay: 0, vids: new Set(), jobs: {}, pods: {} };
                     contractorMap[assigned].pay += rate; contractorMap[assigned].vids.add(vid);
+                    if (podBucket) {
+                        const pd = contractorMap[assigned].pods;
+                        if (!pd[podBucket]) pd[podBucket] = { pay: 0, n: 0 };
+                        pd[podBucket].pay += rate; pd[podBucket].n += 1;
+                    }
                     if (!contractorMap[assigned].jobs[wo]) contractorMap[assigned].jobs[wo] = { rate: 0, stops: new Set() };
                     contractorMap[assigned].jobs[wo].rate += rate; contractorMap[assigned].jobs[wo].stops.add(vid);
                 }
@@ -505,11 +561,18 @@
                 }
             }
             const status = (row['Exception Reason'] || "").toLowerCase();
-            let isException = false;
-            if (status.includes("closed")) { exMap["Venue Closed"][row['Venue Name'] || vid] = (exMap["Venue Closed"][row['Venue Name'] || vid] || 0) + 1; isException = true; }
-            else if (status.includes("missing")) { exMap["Kiosk Missing"][row['Venue Name'] || vid] = (exMap["Kiosk Missing"][row['Venue Name'] || vid] || 0) + 1; isException = true; }
-            else if (status.includes("refusal") || status.includes("refused")) { exMap["Refusal"][row['Venue Name'] || vid] = (exMap["Refusal"][row['Venue Name'] || vid] || 0) + 1; isException = true; }
-            else if (status.includes("damaged")) { exMap["Damaged"][row['Venue Name'] || vid] = (exMap["Damaged"][row['Venue Name'] || vid] || 0) + 1; isException = true; }
+            let exReason = null;
+            if (status.includes("closed")) exReason = "Venue Closed";
+            else if (status.includes("missing")) exReason = "Kiosk Missing";
+            else if (status.includes("refusal") || status.includes("refused")) exReason = "Refusal";
+            else if (status.includes("damaged")) exReason = "Damaged";
+            const isException = !!exReason;
+            if (exReason) {
+                // Kiosks = individual exception rows; Venues = unique VIDs (one VID = one site).
+                const vname = row['Venue Name'] || vid;
+                exMap[exReason][vname] = (exMap[exReason][vname] || 0) + 1;
+                exVids[exReason].add(vid);
+            }
             if (isException && !isFA) {
                 const ttKey = classifyTaskType(row['task_type'], ownerRaw, row['Escalation']);
                 if (ttKey in exTypeCount) exTypeCount[ttKey]++;
@@ -524,45 +587,95 @@
         $("#totalIcPayments").text(`$${icPay.toLocaleString()}`);
         $("#uniqueVisits").text(globalLocs.size);
         $("#visitSplit").text(`IC: ${icLocs.size} | FA: ${faLocs.size}`);
+        const icPool = parseInt(($('#inputIcPool').val()||'0').toString().replace(/[^0-9]/g,''),10) || 0;
+        const icUtil = icPool > 0 ? Math.round((icTechs.size/icPool)*100) : 0;
         $("#uniqueIC").text(icTechs.size);
+        $("#icUtilization").text(icUtil + '%');
         $("#uniqueFA").text(faTechs.size);
         $("#escCount").text(escTotal);
         $("#icCostPerVisit").text(`$${(icLocs.size>0 ? Math.round(icPay/icLocs.size) : 0)}`);
         $("#faCostPerVisit").text(`$${(faLocs.size>0 ? Math.round(cte/faLocs.size) : 0)}`);
 
-        let oHtml = "", rS = 0, rP = 0, eS = 0, eP = 0, pdfR = [], pdfE = [];
+        // Merge the regular + escalation pod maps into a single per-pod row.
         const podDot = name => {
-            const c = POD_COLOR[name];
-            return c ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};margin-right:8px;vertical-align:middle;"></span>` : '';
+            const c = POD_COLOR[name] || '#cbd5e1';
+            return `<span class="pod-dot" style="background:${c}"></span>`;
         };
-        oHtml += `<tr><td colspan="4" class="bg-light fw-bold text-uppercase small py-2 px-3">REGULAR ROUTES</td></tr>`;
-        Object.entries(ownerMap.regular).sort((a,b)=>b[1].pay-a[1].pay).forEach(([n, d]) => {
-            const pStr = '$'+d.pay.toLocaleString(), aStr = '$'+Math.round(d.pay/d.vids.size).toLocaleString();
-            oHtml += `<tr><td class="ps-3">${podDot(n)}${n}</td><td class="text-center">${d.vids.size}</td><td class="text-primary fw-bold">${pStr}</td><td>${aStr}</td></tr>`;
-            pdfR.push([n, d.vids.size.toString(), pStr, aStr]); rS += d.vids.size; rP += d.pay;
+        const podAgg = {};
+        const ensurePod = n => (podAgg[n] || (podAgg[n] = { reg: 0, esc: 0, regPay: 0, escPay: 0, pay: 0, venues: new Set() }));
+        Object.entries(ownerMap.regular).forEach(([n, d]) => { const a = ensurePod(n); a.reg += d.vids.size; a.regPay += d.pay; a.pay += d.pay; d.vids.forEach(v => a.venues.add(v)); });
+        Object.entries(ownerMap.escalations).forEach(([n, d]) => { const a = ensurePod(n); a.esc += d.vids.size; a.escPay += d.pay; a.pay += d.pay; d.vids.forEach(v => a.venues.add(v)); });
+
+        let oHtml = "", gReg = 0, gEsc = 0, gTotal = 0, gRegPay = 0, gEscPay = 0, gPay = 0, pdfPods = [];
+        oHtml += `<tr class="pod-head">
+            <td>Pod</td>
+            <td class="text-center">Regular</td>
+            <td class="text-center">Escalations</td>
+            <td class="text-center">Total Venues</td>
+            <td class="text-end">Total Cost</td></tr>`;
+        const metricCell = (count, avg) => count > 0
+            ? `<div class="pod-metric">${count}<span class="sub">$${avg.toLocaleString()} / stop</span></div>`
+            : `<div class="pod-metric empty">0<span class="sub">none</span></div>`;
+        Object.entries(podAgg).sort((a,b)=>b[1].pay-a[1].pay).forEach(([n, d]) => {
+            const total = d.venues.size;
+            const avgReg = d.reg > 0 ? Math.round(d.regPay/d.reg) : 0;
+            const avgEsc = d.esc > 0 ? Math.round(d.escPay/d.esc) : 0;
+            const avgTotal = total > 0 ? Math.round(d.pay/total) : 0;
+            oHtml += `<tr class="pod-row">
+                <td><span class="pod-name">${podDot(n)}${n}</span></td>
+                <td class="text-center">${metricCell(d.reg, avgReg)}</td>
+                <td class="text-center">${metricCell(d.esc, avgEsc)}</td>
+                <td class="text-center">${metricCell(total, avgTotal)}</td>
+                <td class="text-end"><span class="pod-cost">$${d.pay.toLocaleString()}</span></td></tr>`;
+            const arPdf = d.reg > 0 ? '$'+avgReg.toLocaleString() : '—';
+            const aePdf = d.esc > 0 ? '$'+avgEsc.toLocaleString() : '—';
+            const atPdf = total > 0 ? '$'+avgTotal.toLocaleString() : '—';
+            pdfPods.push([n, d.reg.toString(), arPdf, d.esc.toString(), aePdf, total.toString(), atPdf, '$'+d.pay.toLocaleString()]);
+            gReg += d.reg; gEsc += d.esc; gPay += d.pay; gTotal += total; gRegPay += d.regPay; gEscPay += d.escPay;
         });
-        oHtml += `<tr class="fw-bold table-light text-primary"><td>Regular Subtotal:</td><td class="text-center">${rS}</td><td>$${rP.toLocaleString()}</td><td>$${Math.round(rP/(rS||1)).toLocaleString()}</td></tr>`;
-        oHtml += `<tr><td colspan="4" class="bg-light fw-bold text-uppercase small py-2 px-3">ESCALATIONS & ROLLOUTS</td></tr>`;
-        Object.entries(ownerMap.escalations).sort((a,b)=>b[1].pay-a[1].pay).forEach(([n, d]) => {
-            const pStr = '$'+d.pay.toLocaleString(), aStr = '$'+Math.round(d.pay/d.vids.size).toLocaleString();
-            oHtml += `<tr><td class="ps-3">${podDot(n)}${n}</td><td class="text-center">${d.vids.size}</td><td class="text-primary fw-bold">${pStr}</td><td>${aStr}</td></tr>`;
-            pdfE.push([n, d.vids.size.toString(), pStr, aStr]); eS += d.vids.size; eP += d.pay;
-        });
-        oHtml += `<tr class="fw-bold table-secondary"><td>GRAND TOTAL:</td><td class="text-center">${rS+eS}</td><td>$${(rP+eP).toLocaleString()}</td><td>$${Math.round((rP+eP)/((rS+eS)||1)).toLocaleString()}</td></tr>`;
+        const gAvgReg = gReg > 0 ? Math.round(gRegPay/gReg) : 0;
+        const gAvgEsc = gEsc > 0 ? Math.round(gEscPay/gEsc) : 0;
+        const gAvgTotal = gTotal > 0 ? Math.round(gPay/gTotal) : 0;
+        oHtml += `<tr class="pod-grand">
+            <td><span class="pod-name" style="color:white">GRAND TOTAL</span></td>
+            <td class="text-center">${metricCell(gReg, gAvgReg)}</td>
+            <td class="text-center">${metricCell(gEsc, gAvgEsc)}</td>
+            <td class="text-center">${metricCell(gTotal, gAvgTotal)}</td>
+            <td class="text-end"><span class="pod-cost">$${gPay.toLocaleString()}</span></td></tr>`;
         $("#ownerBody").html(oHtml);
 
         let exHtml = "", pdfExTableData = [];
-        let totalExCount = 0;
+        let totalExKiosks = 0;
+        const allExVids = new Set();
         Object.entries(exMap).forEach(([reason, venues]) => {
-            const reasonCount = Object.values(venues).reduce((a,b)=>a+b, 0);
-            totalExCount += reasonCount;
-            exHtml += `<div class="exception-card shadow-sm" onclick="$(this).find('.exception-details').slideToggle(150)"><div class="exception-header"><b>${reason}</b><span class="badge bg-danger rounded-pill">${reasonCount}</span></div><div class="exception-details">${Object.entries(venues).map(([v,c])=>`<div class="d-flex justify-content-between py-1 border-bottom"><span>${v}</span><b>${c}</b></div>`).join('')}</div></div>`;
-            Object.entries(venues).forEach(([venue, count]) => {
+            // venues: { venueName: kioskRowCount }. Kiosks = rows; Venues = unique VIDs.
+            const venueKiosks = Object.entries(venues);
+            const kioskCount = venueKiosks.reduce((a, [,c]) => a + c, 0);
+            const venueCount = exVids[reason].size;
+            totalExKiosks += kioskCount;
+            exVids[reason].forEach(v => allExVids.add(v));
+            if (kioskCount === 0) return;
+            const detailRows = venueKiosks.slice().sort((a,b)=>b[1]-a[1])
+                .map(([v,c])=>`<div class="d-flex justify-content-between py-1 border-bottom"><span>${v}</span><b>${c}</b></div>`).join('');
+            exHtml += `<div class="exception-card shadow-sm" onclick="$(this).find('.exception-details').slideToggle(150)">
+                <div class="exception-header">
+                    <b>${reason}</b>
+                    <span class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-light text-dark border rounded-pill">${venueCount} ${venueCount===1?'venue':'venues'}</span>
+                        <span class="badge bg-danger rounded-pill">${kioskCount} ${kioskCount===1?'kiosk':'kiosks'}</span>
+                    </span>
+                </div>
+                <div class="exception-details">
+                    <div class="d-flex justify-content-between pb-1 mb-1 border-bottom text-muted text-uppercase" style="font-size:0.58rem; font-weight:800; letter-spacing:0.04em;"><span>Venue</span><span>Kiosks</span></div>
+                    ${detailRows}
+                </div></div>`;
+            venueKiosks.forEach(([venue, count]) => {
                 pdfExTableData.push([venue, count.toString()]);
             });
         });
         $("#ex-summary").html(exHtml);
-        $("#exceptionTotal").text(totalExCount);
+        $("#exceptionTotal").text(totalExKiosks);
+        $("#exceptionVenues").text(allExVids.size);
 
         // Render the Monthly Report tab content
         renderTaskTypeReport(taskTypeMap, icPay, dailyActivity);
@@ -574,10 +687,10 @@
             sites: globalLocs.size.toString(), icFaSplit: "IC: "+icLocs.size+" | FA: "+faLocs.size,
             icSites: icLocs.size.toString(), faSites: faLocs.size.toString(),
             icContractors: icTechs.size.toString(), faContractors: faTechs.size.toString(),
-            esc: escTotal.toString(), exTotal: totalExCount.toString(),
-            regular: pdfR, regSub: ["Regular Subtotal:", rS.toString(), "$"+rP.toLocaleString(), "$"+Math.round(rP/(rS||1)).toLocaleString()],
-            escalation: pdfE, escSub: ["Escalations Subtotal:", eS.toString(), "$"+eP.toLocaleString(), "$"+Math.round(eP/(eS||1)).toLocaleString()],
-            grandTotal: ["GRAND TOTAL:", (rS+eS).toString(), "$"+(rP+eP).toLocaleString(), "$"+Math.round((rP+eP)/((rS+eS)||1)).toLocaleString()],
+            icPool: icPool.toString(), icUtil: icUtil + '%',
+            esc: escTotal.toString(), exTotal: totalExKiosks.toString(), exVenues: allExVids.size.toString(),
+            pods: pdfPods,
+            podsGrandTotal: ["GRAND TOTAL:", gReg.toString(), "$"+gAvgReg.toLocaleString(), gEsc.toString(), "$"+gAvgEsc.toLocaleString(), gTotal.toString(), "$"+gAvgTotal.toLocaleString(), "$"+gPay.toLocaleString()],
             exceptions: pdfExTableData,
             exceptionsByType: TASK_TYPES.map(tt => [tt.label, (exTypeCount[tt.key] || 0).toString()]),
             taskTypes: TASK_TYPES.map(tt => {
@@ -590,11 +703,17 @@
             dailyActivity: dailyActivity
         };
 
-        let pillHtml = "";
-        Object.entries(contractorMap).sort((a,b)=>b[1].pay-a[1].pay).forEach(([name, stats]) => {
-            pillHtml += `<div class="contractor-pill contractor-item-wrapper" data-name="${name.toLowerCase()}" data-wos="${Object.keys(stats.jobs).join(' ').toLowerCase()}" data-pay="${stats.pay}" data-sites="${stats.vids.size}"><div class="contractor-header" onclick="$(this).next().slideToggle(150)"><div class="contractor-name">${name}</div><div class="pill-group-right shadow-sm"><div class="pill-stat"><span class="pill-label-drill">Sites</span><span class="pill-val">${stats.vids.size}</span></div><div class="pill-stat"><span class="pill-label-drill">Pay</span><span class="pill-val text-primary">$${stats.pay.toLocaleString()}</span></div><div class="pill-stat"><span class="pill-label-drill">Avg</span><span class="pill-val">$${Math.round(stats.pay/(stats.vids.size||1)).toLocaleString()}</span></div></div></div><div class="contractor-details"><table class="table detail-data-table mb-0 shadow-sm border"><thead><tr><th>Work Order #</th><th class="text-center"># of Stops</th><th class="text-end">Sum of Rate</th><th class="text-end">Avg / Stop</th></tr></thead><tbody>${Object.entries(stats.jobs).map(([wo, j])=>`<tr><td class="text-primary">${wo}</td><td class="text-center">${j.stops.size}</td><td class="text-end">$${j.rate.toLocaleString()}</td><td class="text-end fw-bold">$${Math.round(j.rate/(j.stops.size||1)).toLocaleString()}</td></tr>`).join('')}</tbody></table></div></div>`;
+        contractorData = [];
+        Object.entries(contractorMap).forEach(([name, stats]) => {
+            const avg = Math.round(stats.pay/(stats.vids.size||1));
+            const pod = dominantPod(stats.pods) || 'No Pod';
+            const podColor = POD_COLOR[pod] || '#94a3b8';
+            const pillHtml = `<div class="contractor-pill contractor-item-wrapper" style="border-left-color:${podColor}" data-name="${name.toLowerCase()}" data-wos="${Object.keys(stats.jobs).join(' ').toLowerCase()}" data-pay="${stats.pay}" data-sites="${stats.vids.size}" data-avg="${avg}" data-pod="${pod}" data-podcolor="${podColor}"><div class="contractor-header" onclick="$(this).next().slideToggle(150)"><div class="d-flex align-items-center" style="flex:1; gap:12px; min-width:0;"><span class="contractor-pod-dot" style="background:${podColor}"></span><div class="contractor-name text-truncate">${name}</div><span class="contractor-pod-label" style="color:${podColor}; background:${podColor}1a">${pod}</span></div><div class="pill-group-right shadow-sm"><div class="pill-stat"><span class="pill-label-drill">Sites</span><span class="pill-val">${stats.vids.size}</span></div><div class="pill-stat"><span class="pill-label-drill">Pay</span><span class="pill-val text-primary">$${stats.pay.toLocaleString()}</span></div><div class="pill-stat"><span class="pill-label-drill">Avg</span><span class="pill-val">$${avg.toLocaleString()}</span></div></div></div><div class="contractor-details"><table class="table detail-data-table mb-0 shadow-sm border"><thead><tr><th>Work Order #</th><th class="text-center"># of Stops</th><th class="text-end">Sum of Rate</th><th class="text-end">Avg / Stop</th></tr></thead><tbody>${Object.entries(stats.jobs).map(([wo, j])=>`<tr><td class="text-primary">${wo}</td><td class="text-center">${j.stops.size}</td><td class="text-end">$${j.rate.toLocaleString()}</td><td class="text-end fw-bold">$${Math.round(j.rate/(j.stops.size||1)).toLocaleString()}</td></tr>`).join('')}</tbody></table></div></div>`;
+            contractorData.push({ name, nameLower: name.toLowerCase(), pay: stats.pay, sites: stats.vids.size, avg, pod, podColor, wos: Object.keys(stats.jobs).join(' ').toLowerCase(), pillHtml });
         });
-        $("#contractorList").html(pillHtml);
+        currentPodFilter = 'all';
+        buildPodPills();
+        renderContractorList();
     }
     let ttChartInstance = null;
     let ttCurrentDailyActivity = null;
@@ -797,11 +916,60 @@
         });
         $("#ttTopSites").html(topHtml);
     }
-    function applyFiltersAndSort() {
-        const term = $('#modernSearch').val().toLowerCase(), sort = $('#modernSort').val(), items = $('.contractor-item-wrapper').get();
-        items.sort((a,b) => { if(sort === 'pay-desc') return b.dataset.pay - a.dataset.pay; if(sort === 'sites-desc') return b.dataset.sites - a.dataset.sites; return a.dataset.name.localeCompare(b.dataset.name); });
-        items.forEach(item => { $(item).toggle(!term || item.dataset.name.includes(term) || item.dataset.wos.includes(term)); $('#contractorList').append(item); });
+    function podSortCmp(sort) {
+        return (a, b) => {
+            if (sort === 'pay-desc') return b.pay - a.pay;
+            if (sort === 'sites-desc') return b.sites - a.sites;
+            if (sort === 'avg-desc') return b.avg - a.avg;
+            if (sort === 'avg-asc') return a.avg - b.avg;
+            return a.name.localeCompare(b.name);
+        };
     }
+    function buildPodPills() {
+        const counts = {};
+        contractorData.forEach(c => { counts[c.pod] = (counts[c.pod] || 0) + 1; });
+        const order = [...PODS.map(p => p.name), 'No Pod'];
+        const allActive = currentPodFilter === 'all';
+        let html = `<div class="pod-pill ${allActive?'active':''}" onclick="setPodFilter('all')" style="${allActive?'background:#0f172a;color:#fff;border-color:#0f172a;':'background:#f1f5f9;color:#334155;'}"><span class="dot" style="background:#0f172a"></span>All Pods <span class="cnt">${contractorData.length}</span></div>`;
+        order.forEach(pn => {
+            const n = counts[pn]; if (!n) return;
+            const color = POD_COLOR[pn] || '#94a3b8';
+            const active = currentPodFilter === pn;
+            const style = active
+                ? `background:${color};color:#fff;border-color:${color};`
+                : `background:${color}14;color:${color};border-color:transparent;`;
+            html += `<div class="pod-pill ${active?'active':''}" onclick="setPodFilter('${pn}')" style="${style}"><span class="dot" style="background:${active?'#fff':color}"></span>${pn} <span class="cnt">${n}</span></div>`;
+        });
+        $('#podFilterPills').html(html);
+    }
+    function setPodFilter(pod) { currentPodFilter = pod; buildPodPills(); renderContractorList(); }
+    function renderContractorList() {
+        const term = ($('#modernSearch').val() || '').toLowerCase();
+        const sort = $('#modernSort').val();
+        const cmp = podSortCmp(sort);
+        let rows = contractorData.filter(c =>
+            (currentPodFilter === 'all' || c.pod === currentPodFilter) &&
+            (!term || c.nameLower.includes(term) || c.wos.includes(term))
+        );
+        let html = '';
+        if (!rows.length) {
+            html = `<div class="text-muted text-center py-5 fst-italic">No contractors match this filter.</div>`;
+        } else if (currentPodFilter === 'all') {
+            // Group under pod section headers (in pod order, No Pod last)
+            [...PODS.map(p => p.name), 'No Pod'].forEach(pn => {
+                const group = rows.filter(c => c.pod === pn).sort(cmp);
+                if (!group.length) return;
+                const color = POD_COLOR[pn] || '#94a3b8';
+                const total = group.reduce((s, c) => s + c.pay, 0);
+                html += `<div class="pod-section-header"><span class="bar" style="background:${color}"></span><span class="pod-section-title" style="color:${color}">${pn}</span><span class="pod-section-meta">${group.length} contractor${group.length!==1?'s':''} · $${total.toLocaleString()}</span></div>`;
+                html += group.map(c => c.pillHtml).join('');
+            });
+        } else {
+            html = rows.sort(cmp).map(c => c.pillHtml).join('');
+        }
+        $('#contractorList').html(html);
+    }
+    function applyFiltersAndSort() { renderContractorList(); }
     function toggleSelectAll(state) { $('.merge-checkbox').prop('checked', state); checkSelectionState(); }
     function loadFromStorage() {
         const arc = getArchiveData(), grouped = {}, mF = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
@@ -877,8 +1045,8 @@
         // 2. Operational KPI section
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 15,
-            head: [['Unique Sites', 'IC Contractors', 'FA Contractors', 'Escalations', 'Exceptions']],
-            body: [[d.sites, d.icContractors, d.faContractors, d.esc, d.exTotal]],
+            head: [['Unique Sites', 'ICs Used', 'FA Contractors', 'Escalations', 'Kiosk Exceptions']],
+            body: [[d.sites, d.icContractors, d.faContractors, d.esc, d.exTotal], ['', 'of ' + (d.icPool||'0') + ' · ' + (d.icUtil||'0%'), '', '', 'Across ' + (d.exVenues || '0') + ' venues']],
             theme: 'grid',
             styles: {fontSize: 9, halign: 'center', fillColor: false},
             headStyles: {fillColor: false, textColor: [100, 100, 100]},
@@ -889,32 +1057,43 @@
                     if (data.column.index === 2) data.cell.styles.textColor = [16, 185, 129];  // FA green
                     if (data.column.index === 3) data.cell.styles.textColor = [245, 158, 11];  // Esc amber
                     if (data.column.index === 4) data.cell.styles.textColor = [225, 29, 72];   // Ex ruby
+                } else if (data.row.index === 1) {
+                    data.cell.styles.fontSize = 7; data.cell.styles.textColor = [100, 116, 139];
                 }
             }
         });
 
-        // 3. Dispatcher table (left) + Exceptions BY TASK TYPE (right)
-        let dispatcherBody = [];
-        dispatcherBody.push([{content: 'REGULAR ROUTES', colSpan: 4, styles: {fillColor: [241, 245, 249], fontStyle: 'bold'}}]);
-        dispatcherBody = dispatcherBody.concat(d.regular);
-        dispatcherBody.push([{content: "Regular Subtotal:", styles: {halign:'right', fontStyle: 'bold'}}, "", {content: d.regSub[2], styles: {fontStyle: 'bold', textColor: [37,99,235]}}, d.regSub[3]]);
-        dispatcherBody.push([{content: 'ESCALATIONS & ROLLOUTS', colSpan: 4, styles: {fillColor: [241, 245, 249], fontStyle: 'bold'}}]);
-        dispatcherBody = dispatcherBody.concat(d.escalation);
-        dispatcherBody.push([{content: "Escalations Subtotal:", styles: {halign:'right', fontStyle: 'bold'}}, "", {content: d.escSub[2], styles: {fontStyle: 'bold', textColor: [37,99,235]}}, d.escSub[3]]);
-        dispatcherBody.push([{content: d.grandTotal[0], styles: {fillColor: [226, 232, 240], fontStyle: 'bold', halign:'right'}}, d.grandTotal[1], {content: d.grandTotal[2], styles: {fontStyle: 'bold', textColor:[37,99,235]}}, d.grandTotal[3]]);
+        // 3. Pod table (left) + Exceptions BY TASK TYPE (right)
+        let podBody = (d.pods || []).map(r => r.slice());
+        const grandStyle = {fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold'};
+        const grandCost  = {fillColor: [15, 23, 42], textColor: [96, 165, 250], fontStyle: 'bold', halign: 'right'};
+        podBody.push([
+            {content: "GRAND TOTAL:", styles: grandStyle},
+            {content: d.podsGrandTotal[1], styles: {...grandStyle, halign:'center'}},
+            {content: d.podsGrandTotal[2], styles: {...grandStyle, halign:'right'}},
+            {content: d.podsGrandTotal[3], styles: {...grandStyle, halign:'center'}},
+            {content: d.podsGrandTotal[4], styles: {...grandStyle, halign:'right'}},
+            {content: d.podsGrandTotal[5], styles: {...grandStyle, halign:'center'}},
+            {content: d.podsGrandTotal[6], styles: {...grandStyle, halign:'right'}},
+            {content: d.podsGrandTotal[7], styles: grandCost}
+        ]);
 
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 30,
             margin: {right: 230},
-            head: [['Pod', 'Sites', 'Total Pay', 'Avg / Site']],
-            body: dispatcherBody,
+            head: [['Pod', 'Regular', 'Reg Avg', 'Escalations', 'Esc Avg', 'Total', 'Ttl Avg', 'Total Cost']],
+            body: podBody,
             theme: 'grid',
-            styles: {fontSize: 8},
-            headStyles: {fillColor: [15, 23, 42]}
+            styles: {fontSize: 7, cellPadding: 2.5},
+            headStyles: {fillColor: [15, 23, 42], fontSize: 6},
+            columnStyles: {
+                1: {halign: 'center'}, 2: {halign: 'right'}, 3: {halign: 'center'}, 4: {halign: 'right'},
+                5: {halign: 'center', fontStyle: 'bold'}, 6: {halign: 'right'}, 7: {halign: 'right', textColor: [37, 99, 235], fontStyle: 'bold'}
+            }
         });
 
         doc.autoTable({
-            startY: doc.lastAutoTable.finalY - (dispatcherBody.length * 12.5) - 22,
+            startY: doc.lastAutoTable.finalY - (podBody.length * 12.5) - 22,
             margin: {left: 410},
             head: [['Task Type', 'Exceptions']],
             body: d.exceptionsByType || [],
@@ -927,17 +1106,17 @@
         doc.save(pdfFilename('Dashboard'));
     }
 
-    // Dispatcher Detail tab — per-contractor list with WO breakdowns
+    // Contractor Detail tab — per-contractor list with WO breakdowns
     function downloadDispatcherPDF() {
         if (!window.pdfExportData) return;
         const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'pt', 'letter');
-        pdfHeader(doc, "Dispatcher Detail");
+        pdfHeader(doc, "Contractor Detail");
 
         const items = $('.contractor-item-wrapper').get().filter(el => $(el).is(':visible'));
         if (!items.length) {
             doc.setFontSize(11); doc.setTextColor(100);
             doc.text("No contractors match the current filter.", 40, 100);
-            doc.save(pdfFilename('Dispatcher_Detail'));
+            doc.save(pdfFilename('Contractor_Detail'));
             return;
         }
 
@@ -949,9 +1128,11 @@
             const sites = $el.attr('data-sites');
             const pay = parseInt($el.attr('data-pay') || '0', 10);
             const avg = sites > 0 ? Math.round(pay / sites) : 0;
-            // Contractor header row
+            const pod = $el.attr('data-pod') || '';
+            const podRgb = hexToRgb($el.attr('data-podcolor') || '#334155');
+            // Contractor header row (name tinted with the pod color for easy grouping)
             body.push([
-                {content: name, colSpan: 2, styles: {fontStyle: 'bold', fillColor: [241, 245, 249], textColor: [37, 99, 235]}},
+                {content: (pod ? pod + ' · ' : '') + name, colSpan: 2, styles: {fontStyle: 'bold', fillColor: [241, 245, 249], textColor: podRgb}},
                 {content: `${sites} sites`, styles: {fillColor: [241, 245, 249], halign: 'center'}},
                 {content: `$${pay.toLocaleString()} (avg $${avg.toLocaleString()})`, styles: {fillColor: [241, 245, 249], halign: 'right', fontStyle: 'bold'}}
             ]);
@@ -971,7 +1152,7 @@
             headStyles: {fillColor: [15, 23, 42]},
             columnStyles: { 1: {halign: 'center'}, 2: {halign: 'right'}, 3: {halign: 'right'} }
         });
-        doc.save(pdfFilename('Dispatcher_Detail'));
+        doc.save(pdfFilename('Contractor_Detail'));
     }
 
     // Monthly Report tab — cost per task type breakdown + date summary + per-day matrix
